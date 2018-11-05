@@ -2,9 +2,9 @@ package com.example.android.myweather;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v4.util.ArrayMap;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v4.util.ArrayMap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,22 +12,23 @@ import android.widget.TextView;
 
 import com.example.android.myweather.db.Province;
 
-import java.util.ArrayList;
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.List;
 
 public class ProvincesListAdapter extends RecyclerView.Adapter<ProvincesListAdapter.ViewHolder> {
 
     private Context mContext;
     private List<String> mKeys;
-    private ArrayMap<String, ArrayList<Province>> mMap;
+    private ArrayMap<String, List<Province>> mMap;
 
-    public ProvincesListAdapter(Context context, List<String> keys, ArrayMap<String, ArrayList<Province>> map) {
+    public ProvincesListAdapter(Context context, List<String> keys, ArrayMap<String, List<Province>> map) {
         mKeys = keys;
         mMap = map;
         mContext = context;
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder {
         TextView keyText;
         RecyclerView provinceList;
 
@@ -54,7 +55,7 @@ public class ProvincesListAdapter extends RecyclerView.Adapter<ProvincesListAdap
         holder.keyText.setText(key);
 
         // 根据关键字提取省份List
-        ArrayList<Province> provinces = mMap.get(key);
+        List<Province> provinces = mMap.get(key);
 
         ProvinceItemAdapter adapter = new ProvinceItemAdapter(provinces);
         holder.provinceList.setHasFixedSize(true);
@@ -97,9 +98,17 @@ public class ProvincesListAdapter extends RecyclerView.Adapter<ProvincesListAdap
         }
 
         @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
             Province province = mProvinces.get(position);
             holder.provinceText.setText(province.getProvinceName());
+            // 设置点击监听器，跳转到对应省份的城市列表界面
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Province province1 = mProvinces.get(position);
+                    EventBus.getDefault().post(province1.getCityQueryUrl());
+                }
+            });
         }
 
         @Override

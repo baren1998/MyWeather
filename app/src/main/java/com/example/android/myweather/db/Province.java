@@ -1,14 +1,21 @@
 package com.example.android.myweather.db;
 
-public class Province {
+import org.litepal.crud.LitePalSupport;
+
+public class Province extends LitePalSupport {
+
+    private String key;
 
     private String provinceName;
 
     private String cityQueryUrl;
 
-    public Province(String provinceName, String cityQueryUrl) {
-        this.provinceName = provinceName;
-        this.cityQueryUrl = cityQueryUrl;
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getProvinceName() {
