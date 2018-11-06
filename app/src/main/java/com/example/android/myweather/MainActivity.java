@@ -5,7 +5,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.Toast;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -42,7 +41,8 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void transationEventBus(String event) {
         queryCityUrl = event;
-        Toast.makeText(this, event, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, event, Toast.LENGTH_SHORT).show();
+        replaceFragment(new ChooseCityFragment());
     }
 
     public String getQueryCityUrl() {

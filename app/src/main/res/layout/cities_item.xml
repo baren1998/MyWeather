@@ -5,8 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/item_list_background"
-    android:layout_margin="5dp"
-    android:padding="8dp"
+    android:layout_margin="4dp"
+    android:padding="16dp"
+    android:textSize="16sp"
+    android:text="武汉"
     android:textColor="@android:color/black">
 
 </TextView>
