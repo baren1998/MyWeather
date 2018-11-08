@@ -6,51 +6,49 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.litepal.LitePal;
 
-import java.io.IOException;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Response;
+import java.util.List;
 
 public class HtmlParseUtil {
 
     /* 爬取并解析墨迹天气的省市数据并存入数据库 */
-    public static void ParseProvinceFromWeb() {
+    public static void ParseProvincesFromHtml(String htmlData) {
+        Document document = Jsoup.parse(htmlData);
 
-        HttpUtil.sendOKHttpRequest("https://tianqi.moji.com/weather/china", new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
+        // 提取所有省份类"city_list clearfix"
+        Elements cityElements = document.getElementsByClass("city_list clearfix");
 
-            }
+        // 提取每个省份的key和省份名称
+        for(Element e : cityElements) {
+            Element keyElem = e.getElementsByTag("dt").first();
+            String key = keyElem.text();
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String htmlData = response.body().string();
-                Document document = Jsoup.parse(htmlData);
+            Elements provincesElem = e.getElementsByTag("a");
+            for(Element e1 : provincesElem) {
+                // 获取省份城市查询的url
+                String cityQueryUrl = e1.attr("href");
+                String provinceName = e1.text();
 
-                // 提取所有省份类"city_list clearfix"
-                Elements cityElements = document.getElementsByClass("city_list clearfix");
-
-                // 提取每个省份的key和省份名称
-                for(Element e : cityElements) {
-                    Element keyElem = e.getElementsByTag("dt").first();
-                    String key = keyElem.text();
-
-                    Elements provincesElem = e.getElementsByTag("a");
-                    for(Element e1 : provincesElem) {
-                        // 获取省份城市查询的url
-                        String cityQueryUrl = e1.attr("href");
-                        String provinceName = e1.text();
-
-                        Province province = new Province();
-                        province.setKey(key);
-                        province.setCityQueryUrl(cityQueryUrl);
-                        province.setProvinceName(provinceName);
-                        province.save();
-                    }
+                List<Province> provinceList = LitePal.where("provinceName = ?", provinceName).find(Province.class);
+                if(provinceList.size() == 0) {
+                    Province province = new Province();
+                    province.setKey(key);
+                    province.setCityQueryUrl(cityQueryUrl);
+                    province.setProvinceName(provinceName);
+                    province.save();
                 }
             }
-        });
+        }
+    }
+
+    public static String extractNameFromHtml(String htmlData) {
+        Document document = Jsoup.parse(htmlData);
+        Element headElem = document.getElementsByTag("head").first();
+        Element titleElem = headElem.getElementsByTag("title").first();
+        String title = titleElem.text();
+        String name = title.substring(0, title.indexOf("省"));
+
+        return name;
     }
 }

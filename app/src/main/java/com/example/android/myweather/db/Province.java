@@ -31,6 +31,6 @@ public class Province extends LitePalSupport {
     }
 
     public void setCityQueryUrl(String cityQueryUrl) {
-        this.cityQueryUrl = cityQueryUrl;
+        this.cityQueryUrl = "https://tianqi.moji.com" + cityQueryUrl;
     }
 }

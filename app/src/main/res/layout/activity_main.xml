@@ -14,7 +14,7 @@
 
         <!--<fragment-->
             <!--android:id="@+id/choose_area_fragment"-->
-            <!--android:name="com.example.android.myweather.ChooseAreaFragment"-->
+            <!--android:name="com.example.android.myweather.ChooseProvinceFragmentment"-->
             <!--android:layout_width="match_parent"-->
             <!--android:layout_height="match_parent" />-->
 

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/choose_area_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </android.support.v7.widget.RecyclerView>
+
+    <com.github.clans.fab.FloatingActionMenu
+        android:id="@+id/fab_menu"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:padding="16dp"
+        app:menu_colorNormal="@android:color/holo_orange_light"
+        app:menu_colorPressed="@android:color/holo_orange_dark"
+        app:menu_labels_singleLine="true"
+        app:menu_labels_ellipsize="end"
+        app:menu_backgroundColor="#ccffffff">
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fab_add_province"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fab_colorNormal="@android:color/holo_orange_light"
+            app:fab_colorPressed="@android:color/holo_orange_dark"
+            android:src="@drawable/ic_single_city_white"
+            app:fab_size="mini"
+            app:fab_label="添加一个城市" />
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fab_refresh_all"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fab_colorNormal="@android:color/holo_orange_light"
+            app:fab_colorPressed="@android:color/holo_orange_dark"
+            android:src="@drawable/ic_refresh_white"
+            app:fab_size="mini"
+            app:fab_label="重新获取城市列表" />
+
+    </com.github.clans.fab.FloatingActionMenu>
+
+</RelativeLayout>

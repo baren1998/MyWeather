@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Fragment fragment = new ChooseAreaFragment();
+        Fragment fragment = new ChooseProvinceFragment();
         replaceFragment(fragment);
         // 注册EventBus订阅者
         EventBus.getDefault().register(this);
@@ -41,11 +41,10 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void transationEventBus(String event) {
         queryCityUrl = event;
-//        Toast.makeText(this, event, Toast.LENGTH_SHORT).show();
         replaceFragment(new ChooseCityFragment());
     }
 
     public String getQueryCityUrl() {
-        return "https://tianqi.moji.com" + queryCityUrl;
+        return queryCityUrl;
     }
 }
