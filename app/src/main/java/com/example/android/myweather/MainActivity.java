@@ -6,13 +6,15 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 
+import com.example.android.myweather.db.Province;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 public class MainActivity extends AppCompatActivity {
 
-    private String queryCityUrl;
+    private Province currentProvince;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,16 +37,17 @@ public class MainActivity extends AppCompatActivity {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.fragment_layout, fragment);
+        transaction.addToBackStack(null);
         transaction.commit();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void transationEventBus(String event) {
-        queryCityUrl = event;
+    public void transationEventBus(Province event) {
+        currentProvince = event;
         replaceFragment(new ChooseCityFragment());
     }
 
-    public String getQueryCityUrl() {
-        return queryCityUrl;
+    public Province getCurrentProvince() {
+        return currentProvince;
     }
 }

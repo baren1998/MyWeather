@@ -1,10 +1,12 @@
 package com.example.android.myweather;
 
-import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -19,12 +21,12 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.myweather.Util.HtmlParseUtil;
 import com.example.android.myweather.Util.HttpUtil;
+import com.example.android.myweather.db.City;
+import com.example.android.myweather.db.Province;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import org.litepal.LitePal;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,13 +38,15 @@ import okhttp3.Response;
 
 public class ChooseCityFragment extends Fragment {
 
-    private String queryCityUrl;
+    private Province currentProvince;
     private RecyclerView cityList;
-    private List<String> cities;
+    private List<City> cities;
     private CityListAdapter adapter;
 
     private android.support.v7.widget.Toolbar mToolbar;
     private SearchView mSearchView;
+    private FloatingActionButton fab;
+    private AlertDialog dialog;
 
     @Nullable
     @Override
@@ -62,6 +66,28 @@ public class ChooseCityFragment extends Fragment {
         cityList.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayout.VERTICAL, false));
         cityList.setAdapter(adapter);
 
+        // 初始化fab
+        fab = (FloatingActionButton) view.findViewById(R.id.fab_refresh);
+
+        return view;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        // 获取MainActivity中的Province对象
+        currentProvince = ((MainActivity) getActivity()).getCurrentProvince();
+
+        // 先去数据库查询城市列表，若数据库无数据则去Web上爬取
+        List<City> list = LitePal.where("provinceName = ?", currentProvince.getProvinceName()).find(City.class);
+        if(list.size() != 0) {
+            setListValue();
+            adapter.notifyDataSetChanged();
+        } else {
+            parseCityFromWeb(currentProvince);
+        }
+
+        // 为SearchView设置监听器
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
@@ -75,23 +101,23 @@ public class ChooseCityFragment extends Fragment {
             }
         });
 
-        return view;
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        queryCityUrl = ((MainActivity) getActivity()).getQueryCityUrl();
-        parseCityFromWeb(queryCityUrl);
+        // 设置fab点击事件
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // 点击重新拉取所有城市
+                parseCityFromWeb(currentProvince);
+            }
+        });
     }
 
     /* 城市列表适配器 */
     class CityListAdapter extends RecyclerView.Adapter<CityListAdapter.ViewHolder> implements Filterable {
 
-        private List<String> mSourceList;
-        private List<String> mFilterList;
+        private List<City> mSourceList;
+        private List<City> mFilterList;
 
-        public CityListAdapter(List<String> list) {
+        public CityListAdapter(List<City> list) {
             mSourceList = list;
             mFilterList = list;
         }
@@ -116,12 +142,45 @@ public class ChooseCityFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            final String cityName = mFilterList.get(position);
+            final City currentCity = mFilterList.get(position);
+            final String cityName = currentCity.getCityName();
             holder.cityText.setText(cityName);
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Toast.makeText(getContext(), cityName, Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            // 设置长按删除删除共处
+            holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    dialog = new AlertDialog.Builder(getActivity()).create();
+                    dialog.setIcon(R.mipmap.ic_launcher);
+                    dialog.setTitle("是否确定删除选中的市/区?");
+                    dialog.setMessage("点击确定将删除市/区：" + currentCity.getCityName());
+                    // 点击确认按钮将当前城市从数据库移除
+                    dialog.setButton(DialogInterface.BUTTON_POSITIVE, "确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            LitePal.deleteAll(City.class, "provinceName = ? and cityName = ?",
+                                    currentProvince.getProvinceName(), currentCity.getCityName());
+                            cities.remove(currentCity);
+                            notifyDataSetChanged();
+                            dialog.dismiss();
+                            dialog.cancel();
+                        }
+                    });
+                    dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialog.dismiss();
+                            dialog.cancel();
+                        }
+                    });
+                    dialog.show();
+                    return true;
                 }
             });
         }
@@ -138,14 +197,15 @@ public class ChooseCityFragment extends Fragment {
                 @Override
                 protected FilterResults performFiltering(CharSequence charSequence) {
                     String charString = charSequence.toString();
-                    List<String> filteredList;
+                    List<City> filteredList;
                     if(TextUtils.isEmpty(charString)) {
                         filteredList = mSourceList;
                     } else {
                         filteredList = new ArrayList<>();
-                        for(String str : mSourceList) {
+                        for(City city : mSourceList) {
+                            String str = city.getCityName();
                             if(str.contains(charString)) {
-                                filteredList.add(str);
+                                filteredList.add(city);
                             }
                         }
                     }
@@ -158,15 +218,15 @@ public class ChooseCityFragment extends Fragment {
                 // 提取过滤后的值
                 @Override
                 protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
-                    mFilterList = (ArrayList<String>) filterResults.values;
+                    mFilterList = (ArrayList<City>) filterResults.values;
                     notifyDataSetChanged();
                 }
             };
         }
     }
 
-    private void parseCityFromWeb(String queryUrl) {
-        HttpUtil.sendOKHttpRequest(queryUrl, new Callback() {
+    private void parseCityFromWeb(final Province currentProvince) {
+        HttpUtil.sendOKHttpRequest(currentProvince.getCityQueryUrl(), new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
 
@@ -175,26 +235,26 @@ public class ChooseCityFragment extends Fragment {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String html = response.body().string();
-                Document document = Jsoup.parse(html);
+                HtmlParseUtil.extractCitiesFromHtml(currentProvince.getProvinceName(), html);
 
-                // 根据类名"city_hot"提取城市列表类
-                Element element = document.getElementsByClass("city_hot").first();
-
-                // 根据标签名"a"提取类中每一个标签
-                Elements cityNodes = element.getElementsByTag("a");
-                for(Element e : cityNodes) {
-                    // 提取城市名称
-                    String cityName = e.text();
-                    cities.add(cityName);
-                }
+                setListValue();
                 // 通知数据集更新
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         adapter.notifyDataSetChanged();
+                        Toast.makeText(getActivity(), "城市列表拉取成功", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         });
+    }
+
+    private void setListValue() {
+        cities.clear();
+        List<City> list = LitePal.where("provinceName = ?", currentProvince.getProvinceName()).find(City.class);
+        for(City city : list) {
+            cities.add(city);
+        }
     }
 }

@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.example.android.myweather.db.City;
 import com.example.android.myweather.db.Province;
 
 import org.greenrobot.eventbus.EventBus;
@@ -110,7 +111,7 @@ public class ProvincesListAdapter extends RecyclerView.Adapter<ProvincesListAdap
                 @Override
                 public void onClick(View view) {
                     Province province1 = mProvinces.get(position);
-                    EventBus.getDefault().post(province1.getCityQueryUrl());
+                    EventBus.getDefault().post(province1);
                 }
             });
             // 设置长按监听实现删除功能
@@ -127,6 +128,9 @@ public class ProvincesListAdapter extends RecyclerView.Adapter<ProvincesListAdap
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             LitePal.deleteAll(Province.class, "provinceName = ?", province.getProvinceName());
+                            // 同时将该省份对应的所有市/区从数据库移除
+                            LitePal.deleteAll(City.class, "provinceName = ?", province.getProvinceName());
+
                             mProvinces.remove(province);
                             // 判断map中当前同关键字省份是否已经为空
                             List<Province> currentKeyProvinces = mMap.get(province.getKey());
@@ -138,12 +142,14 @@ public class ProvincesListAdapter extends RecyclerView.Adapter<ProvincesListAdap
                             notifyDataSetChanged();
                             ProvincesListAdapter.this.notifyDataSetChanged();
                             dialog.dismiss();
+                            dialog.cancel();
                         }
                     });
                     dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "取消", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             dialog.dismiss();
+                            dialog.cancel();
                         }
                     });
                     dialog.show();
