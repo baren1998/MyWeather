@@ -3,4 +3,7 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
+    <color name="aqi_green">#00FF00</color>
+    <color name="aqi_orange">#FFB90F</color>
+    <color name="bubble_color"></color>
 </resources>

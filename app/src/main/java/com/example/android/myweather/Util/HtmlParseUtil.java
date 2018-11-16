@@ -91,6 +91,7 @@ public class HtmlParseUtil {
 
     public static Weather handleWeatherResponse(String htmlData) throws IOException {
         Document document = Jsoup.parse(htmlData);
+        OkHttpClient client = new OkHttpClient();
 
         Weather weather = new Weather();
         List<Forecast> forecastList = new ArrayList<>();
@@ -102,14 +103,26 @@ public class HtmlParseUtil {
         // 提取当前空气状况
         String currntAqi = wea_alertElem.getElementsByTag("em").first().text();
         weather.setCurrentAqi(currntAqi);
+        // 提取PM2.5的数值
+        String pm25Url = wea_alertElem.getElementsByTag("a").first().attr("href");
+        Request request = new Request.Builder().url(pm25Url).build();
+        Response response = client.newCall(request).execute();
 
-        // 提取当前温度、天气状况和更新时间
+        Document document1 = Jsoup.parse(response.body().string());
+        Element aqi_info_itemElem = document1.getElementsByClass("aqi_info_item").first();
+        Element pm25Elem = aqi_info_itemElem.getElementsByTag("li").get(1);
+        String pm25 = pm25Elem.getElementsByTag("span").first().text();
+        weather.setPm25(pm25);
+
+        // 提取当前温度、天气状况、状况图片URL和更新时间
         Element wea_weatherElem = wea_infoElem.getElementsByClass("wea_weather clearfix").first();
         String currentDegree = wea_weatherElem.getElementsByTag("em").first().text();
         String currentCondition = wea_weatherElem.getElementsByTag("b").first().text();
+        String currentConditionImgUrl = wea_weatherElem.getElementsByTag("img").first().attr("src");
         String updateTime = wea_weatherElem.getElementsByClass("info_uptime").first().text();
         weather.setCurrentDegree(currentDegree);
         weather.setCurrentCondition(currentCondition);
+        weather.setCurrentConiditionImgUrl(currentConditionImgUrl);
         weather.setUpdateTime(updateTime);
 
         // 提取湿度和风力
@@ -143,8 +156,10 @@ public class HtmlParseUtil {
             String wind = windElem.child(1).text();
             // 提取空气质量
             String aqi = liElems.get(4).getElementsByTag("strong").first().text();
+            // 提取天气状况图片URL
+            String conditionImgUrl = e.getElementsByTag("img").first().attr("src");
 
-            Forecast forecast = new Forecast(day, condition, degree, wind, windDeriction, aqi);
+            Forecast forecast = new Forecast(day, condition, degree, wind, windDeriction, aqi, conditionImgUrl);
             forecastList.add(forecast);
         }
         weather.setForecastList(forecastList);
@@ -154,64 +169,66 @@ public class HtmlParseUtil {
         Elements lis = element.getElementsByTag("li");
         for(int i = 0; i < 10; i++) {
             Element e = lis.get(i);
-            String title = e.getElementsByTag("dd").first().text();
-            String comment = e.getElementsByTag("dt").first().text();
-            StringBuilder builder = new StringBuilder("温馨提示：");
-            String tips;
+            if(!e.text().equals("")) {
+                String title = e.getElementsByTag("dd").first().text();
+                String comment = e.getElementsByTag("dt").first().text();
+                StringBuilder builder = new StringBuilder("温馨提示：");
+                String tips;
 
-            Element a = e.getElementsByTag("a").first();
-            String url = a.attr("href");
-            if(!url.equals("javascript:")) {
-                Request request1 = new Request.Builder().url(url).build();
+                Element a = e.getElementsByTag("a").first();
+                String url = a.attr("href");
+                if (!url.equals("javascript:")) {
+                    // 请求温馨提示
+                    Request request1 = new Request.Builder().url(url).build();
 
-                OkHttpClient client = new OkHttpClient();
-                Response response = client.newCall(request1).execute();
-                String html1 = response.body().string();
-                Document document1 = Jsoup.parse(html1);
-                Element tipsElem = document1.getElementsByClass("aqi_info_tips").first();
-                tips = builder.append(tipsElem.getElementsByTag("dd").first().text()).toString();
-            } else {
-                tips = builder.append("无").toString();
+                    Response response1 = client.newCall(request1).execute();
+                    String html1 = response1.body().string();
+                    Document document2 = Jsoup.parse(html1);
+                    Element tipsElem = document2.getElementsByClass("aqi_info_tips").first();
+                    tips = builder.append(tipsElem.getElementsByTag("dd").first().text()).toString();
+                } else {
+                    tips = builder.append("无").toString();
+                }
+
+                LiveIndex liveIndex = new LiveIndex();
+                liveIndex.setTitle(title);
+                liveIndex.setComment(comment);
+                liveIndex.setTips(tips);
+
+                switch (title) {
+                    case "感冒":
+                        liveIndex.setImgResourceId(R.drawable.ic_cold);
+                        break;
+                    case "洗车":
+                        liveIndex.setImgResourceId(R.drawable.ic_carwash);
+                        break;
+                    case "空气污染扩散":
+                        liveIndex.setImgResourceId(R.drawable.ic_apd);
+                        break;
+                    case "穿衣":
+                        liveIndex.setImgResourceId(R.drawable.ic_cloth);
+                        break;
+                    case "旅游":
+                        liveIndex.setImgResourceId(R.drawable.ic_tour);
+                        break;
+                    case "交通":
+                        liveIndex.setImgResourceId(R.drawable.ic_traffic);
+                        break;
+                    case "化妆":
+                        liveIndex.setImgResourceId(R.drawable.ic_makeup);
+                        break;
+                    case "运动":
+                        liveIndex.setImgResourceId(R.drawable.ic_sport);
+                        break;
+                    case "钓鱼":
+                        liveIndex.setImgResourceId(R.drawable.ic_fishing);
+                        break;
+                    case "紫外线":
+                        liveIndex.setImgResourceId(R.drawable.ic_uv);
+                        break;
+                }
+                liveIndexList.add(liveIndex);
             }
-
-            LiveIndex liveIndex = new LiveIndex();
-            liveIndex.setTitle(title);
-            liveIndex.setComment(comment);
-            liveIndex.setTips(tips);
-
-            switch (title) {
-                case "感冒":
-                    liveIndex.setImgResourceId(R.drawable.ic_cold);
-                    break;
-                case "洗车":
-                    liveIndex.setImgResourceId(R.drawable.ic_carwash);
-                    break;
-                case "空气污染扩散":
-                    liveIndex.setImgResourceId(R.drawable.ic_apd);
-                    break;
-                case "穿衣":
-                    liveIndex.setImgResourceId(R.drawable.ic_cloth);
-                    break;
-                case "旅游":
-                    liveIndex.setImgResourceId(R.drawable.ic_tour);
-                    break;
-                case "交通":
-                    liveIndex.setImgResourceId(R.drawable.ic_traffic);
-                    break;
-                case "化妆":
-                    liveIndex.setImgResourceId(R.drawable.ic_makeup);
-                    break;
-                case "运动":
-                    liveIndex.setImgResourceId(R.drawable.ic_sport);
-                    break;
-                case "钓鱼":
-                    liveIndex.setImgResourceId(R.drawable.ic_fishing);
-                    break;
-                case "紫外线":
-                    liveIndex.setImgResourceId(R.drawable.ic_uv);
-                    break;
-            }
-            liveIndexList.add(liveIndex);
         }
         weather.setLiveIndexList(liveIndexList);
 

@@ -12,6 +12,8 @@ public class Weather {
     private String updateTime;
     private String currentWind;
     private String weatherTips;
+    private String currentConiditionImgUrl;
+    private String pm25;
 
     // 天气预报列表
     private List<Forecast> mForecastList;
@@ -83,6 +85,22 @@ public class Weather {
 
     public void setWeatherTips(String weatherTips) {
         this.weatherTips = weatherTips;
+    }
+
+    public String getCurrentConiditionImgUrl() {
+        return currentConiditionImgUrl;
+    }
+
+    public void setCurrentConiditionImgUrl(String currentConiditionImgUrl) {
+        this.currentConiditionImgUrl = currentConiditionImgUrl;
+    }
+
+    public String getPm25() {
+        return pm25;
+    }
+
+    public void setPm25(String pm25) {
+        this.pm25 = pm25;
     }
 
     public void setForecastList(List<Forecast> forecastList) {
