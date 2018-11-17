@@ -2,6 +2,7 @@ package com.example.android.myweather.Util;
 
 import com.example.android.myweather.R;
 import com.example.android.myweather.Weather.Forecast;
+import com.example.android.myweather.Weather.ForecastSeven;
 import com.example.android.myweather.Weather.LiveIndex;
 import com.example.android.myweather.Weather.Weather;
 import com.example.android.myweather.db.City;
@@ -96,6 +97,7 @@ public class HtmlParseUtil {
         Weather weather = new Weather();
         List<Forecast> forecastList = new ArrayList<>();
         List<LiveIndex> liveIndexList = new ArrayList<>();
+        List<ForecastSeven> forecastSevenList = new ArrayList<>();
 
         /* 先解析并提取当前天气信息 */
         Element wea_infoElem = document.getElementsByClass("wrap clearfix wea_info").first();
@@ -139,6 +141,11 @@ public class HtmlParseUtil {
 
         /* 提取天气预报信息 */
         Element forecastElem = document.getElementsByClass("forecast clearfix").first();
+
+        // 提取七日预报的URL
+        Element navElem = forecastElem.getElementsByClass("nav").first();
+        String sevenDaysForecastDaysUrl = navElem.getElementsByTag("a").first().attr("href");
+
         Elements daysElems = forecastElem.getElementsByClass("days clearfix");
         for(Element e : daysElems) {
             // 提取日子
@@ -163,6 +170,28 @@ public class HtmlParseUtil {
             forecastList.add(forecast);
         }
         weather.setForecastList(forecastList);
+
+        // 提取七日预报信息
+        Request sfRequest = new Request.Builder().url(sevenDaysForecastDaysUrl).build();
+        Response sfResponse = client.newCall(sfRequest).execute();
+
+        Document sfDocument = Jsoup.parse(sfResponse.body().string());
+        Element detail_future_gridElem = sfDocument.getElementsByClass("detail_future_grid").first();
+
+        Elements sfLis = detail_future_gridElem.getElementsByTag("li");
+
+        for(Element sfElem : sfLis) {
+            String week = sfElem.getElementsByClass("week").first().text();
+            String date = sfElem.getElementsByClass("week").get(1).text();
+            String condition = sfElem.getElementsByClass("wea").first().text();
+            String conditionImgUrl = sfElem.getElementsByTag("img").first().attr("src");
+            String max = sfElem.getElementsByTag("b").first().text();
+            String min = sfElem.getElementsByTag("strong").first().text();
+
+            ForecastSeven forecastSeven = new ForecastSeven(week, date, condition, conditionImgUrl, min, max);
+            forecastSevenList.add(forecastSeven);
+        }
+        weather.setForecastSevenList(forecastSevenList);
 
         /* 提取生活指数 */
         Element element = document.getElementsByClass("live_index_grid").first();

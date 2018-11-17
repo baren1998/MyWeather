@@ -2,31 +2,32 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="380dp"
-    android:orientation="vertical"
-    android:layout_margin="16dp">
+    android:layout_margin="16dp"
+    android:orientation="vertical">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#8000"
+        android:gravity="center_vertical"
+        android:paddingLeft="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:text="生活指数"
         android:textColor="@android:color/white"
-        android:textSize="20sp"
-        android:paddingTop="8dp"
-        android:paddingLeft="8dp"
-        android:gravity="center_vertical"
-        android:background="#8000"/>
+        android:textSize="20sp" />
 
     <View
         android:layout_width="match_parent"
-        android:layout_height="4dp"/>
+        android:layout_height="4dp" />
 
     <GridView
-        android:scrollbars="none"
         android:id="@+id/live_index_grid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:numColumns="2"
         android:horizontalSpacing="4dp"
-        android:verticalSpacing="4dp"/>
+        android:numColumns="2"
+        android:scrollbars="none"
+        android:verticalSpacing="4dp" />
 
 </LinearLayout>

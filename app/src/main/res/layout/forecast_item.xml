@@ -73,8 +73,6 @@
         android:layout_height="30dp"
         android:layout_gravity="center_vertical"
         android:layout_weight="1"
-        android:background="@drawable/rounded_rectangle"
-        android:backgroundTint="@android:color/holo_green_light"
         android:gravity="center"
         android:text="53 优"
         android:textColor="@android:color/white" />

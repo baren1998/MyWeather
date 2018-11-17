@@ -100,7 +100,7 @@
 
         <TextView
             android:backgroundTint="#8000"
-            android:background="@drawable/rounded_rectangle"
+            android:background="@drawable/rounded_rectangle_green"
             android:text="今日天气提示"
             android:textColor="@android:color/white"
             android:gravity="center"

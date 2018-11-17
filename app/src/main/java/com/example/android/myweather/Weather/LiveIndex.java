@@ -6,6 +6,9 @@ public class LiveIndex {
     private int imgResourceId;
     private String tips;
 
+    public LiveIndex() {
+    }
+
     public String getTitle() {
         return title;
     }

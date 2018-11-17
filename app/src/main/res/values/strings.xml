@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">MyWeather</string>
+    <string name="seven_days"><u>7天预报</u></string>
+    <string name="three_days"><u>3天预报</u></string>
 </resources>

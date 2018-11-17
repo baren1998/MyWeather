@@ -27,7 +27,6 @@ import com.example.android.myweather.Util.HttpUtil;
 import com.example.android.myweather.db.City;
 import com.example.android.myweather.db.Province;
 
-import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 
 import java.io.IOException;
@@ -151,8 +150,11 @@ public class ChooseCityFragment extends Fragment {
                 @Override
                 public void onClick(View view) {
                     // 使用EventBus发送黏性事件，跳转到WeatherActivity并进行处理
-                    EventBus.getDefault().postSticky(currentCity);
+//                    EventBus.getDefault().postSticky(currentCity);
                     Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                    String weatherQueryUrl = currentCity.getQueryWeatherUrl();
+                    intent.putExtra("city", cityName);
+                    intent.putExtra("weatherQuery", weatherQueryUrl);
                     startActivity(intent);
                 }
             });

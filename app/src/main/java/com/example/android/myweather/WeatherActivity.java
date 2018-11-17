@@ -2,7 +2,6 @@ package com.example.android.myweather;
 
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -18,19 +17,16 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alibaba.fastjson.JSON;
 import com.bumptech.glide.Glide;
 import com.example.android.myweather.Util.HtmlParseUtil;
 import com.example.android.myweather.Util.HttpUtil;
 import com.example.android.myweather.Weather.Forecast;
+import com.example.android.myweather.Weather.ForecastSeven;
 import com.example.android.myweather.Weather.LiveIndex;
 import com.example.android.myweather.Weather.Weather;
-import com.example.android.myweather.db.City;
 import com.xujiaji.happybubble.BubbleDialog;
 import com.xujiaji.happybubble.BubbleLayout;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,7 +38,9 @@ import okhttp3.Response;
 
 public class WeatherActivity extends AppCompatActivity {
 
-    private City currentCity;
+    private String cityName;
+    private String weatherQueryUrl;
+    private Weather weather;
 
     // title.xml中的控件
     private TextView titleCity;
@@ -72,13 +70,12 @@ public class WeatherActivity extends AppCompatActivity {
     private LiveIndexAdapter adapter;
     private List<LiveIndex> mLiveIndexList;
 
+    private TextView threeDaysBtn;
+    private TextView sevenDaysBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // 注册EventBus
-        EventBus.getDefault().register(this);
 
         if(Build.VERSION.SDK_INT >= 21) {
             View decorView = getWindow().getDecorView();
@@ -135,38 +132,50 @@ public class WeatherActivity extends AppCompatActivity {
             }
         });
 
-//        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-//        String weatherHtml = prefs.getString("weather", null);
-//        if(weatherHtml != null) {
-//            // 有缓存时直接解析天气信息
-//            new HandleWeatherResponseAsyncTask().execute(weatherHtml);
-//        } else {
-//            // 若没有缓存则去网站上获取数据
-//            requestWeather(currentCity.getQueryWeatherUrl());
-//        }
+        threeDaysBtn = findViewById(R.id.three_days_btn);
+        sevenDaysBtn = findViewById(R.id.seven_days_btn);
+        //设置天气预报栏的按功能
+        threeDaysBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                loadForecast();
+            }
+        });
+
+        sevenDaysBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                loadForecastSeven();
+            }
+        });
 
         // 设置下拉刷新时重新去网站获取数据
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                requestWeather(currentCity.getQueryWeatherUrl());
+                requestWeather(weatherQueryUrl);
             }
         });
-    }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        EventBus.getDefault().unregister(this);
-    }
+        // 接收intent传递过来的cityName和Url
+        cityName = getIntent().getStringExtra("city");
+        weatherQueryUrl = getIntent().getStringExtra("weatherQuery");
+        // 查看当前城市是否为缓存数据
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String city = preferences.getString("city", null);
+        if(city != null) {
+            if(city.equals(cityName)) {
+                String weatherJSON = preferences.getString("weather", null);
+                weather = JSON.parseObject(weatherJSON, Weather.class);
 
-    // 接收黏性事件并处理
-    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
-    public void handleEvent(City event) {
-        String cityName = event.getCityName();
-        currentCity = event;
-        Toast.makeText(this, cityName, Toast.LENGTH_SHORT).show();
-        requestWeather(currentCity.getQueryWeatherUrl());
+                showWeatherInfo();
+                Toast.makeText(this, "天气缓存信息读取成功", Toast.LENGTH_SHORT).show();
+            } else {
+                requestWeather(weatherQueryUrl);
+            }
+        } else {
+            requestWeather(weatherQueryUrl);
+        }
     }
 
     /* 从网站上获取需要的天气信息 */
@@ -186,16 +195,25 @@ public class WeatherActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 final String html = response.body().string();
-                final Weather weather = HtmlParseUtil.handleWeatherResponse(html);
+                final Weather weatherResponse = HtmlParseUtil.handleWeatherResponse(html);
+                weather = weatherResponse;
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this)
-                                .edit();
-                        editor.putString("weather", html);
+                        // 将获得的weather使用转换为JSON字符串后使用sharedpreferences保存
+                        SharedPreferences.Editor editor = PreferenceManager
+                                .getDefaultSharedPreferences(WeatherActivity.this).edit();
+                        editor.putString("city", cityName);
+
+                        String weatherJSON = JSON.toJSONString(weather, true);
+                        editor.putString("weather", weatherJSON);
                         editor.apply();
-                        showWeatherInfo(weather);
+
+                        // 展示天气数据
+                        showWeatherInfo();
+                        Toast.makeText(WeatherActivity.this, "天气信息获取成功", Toast.LENGTH_SHORT).show();
+                        swipeRefreshLayout.setRefreshing(false);
                     }
                 });
             }
@@ -204,9 +222,8 @@ public class WeatherActivity extends AppCompatActivity {
 
 
     /* 处理并展示天气实体类中的数据 */
-    private void showWeatherInfo(Weather weather) {
+    private void showWeatherInfo() {
          // 显示title中的数据
-        String cityName = currentCity.getCityName();
         String updateTime = weather.getUpdateTime();
         titleCity.setText(cityName);
         titleUpdateTime.setText(updateTime);
@@ -232,6 +249,23 @@ public class WeatherActivity extends AppCompatActivity {
         currentAqiText.setText(currentAqi);
         pm25Text.setText(pm25);
 
+        // 显示forecast中的数据(默认为3天)
+        loadForecast();
+
+        // 绑定GirdView中的数据
+        mLiveIndexList.clear();
+        List<LiveIndex> liveIndices = weather.getLiveIndexList();
+        for(LiveIndex liveIndex : liveIndices) {
+            mLiveIndexList.add(liveIndex);
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    private void loadPic(final String imgUrl, final ImageView targetView) {
+        Glide.with(WeatherActivity.this).load(imgUrl).into(targetView);
+    }
+
+    private void loadForecast() {
         // 显示forecast中的数据
         forecastLayout.removeAllViews();
         for(Forecast forecast : weather.getForecastList()) {
@@ -252,53 +286,40 @@ public class WeatherActivity extends AppCompatActivity {
             wind.setText(forecast.getWind());
             aqi.setText(forecast.getAqi());
             // 判断aqi处的背景颜色
-//            int aqiValue = Integer.parseInt(forecast.getAqi().substring(0, forecast.getAqi().indexOf(" ")));
-//            if(aqiValue <= 50) {
-//                aqi.setBackgroundColor(ContextCompat.getColor(this, R.color.aqi_green));
-//            } else {
-//                aqi.setBackgroundColor(ContextCompat.getColor(this, R.color.aqi_orange));
-//            }
+            int aqiValue = Integer.parseInt(forecast.getAqi().substring(0, forecast.getAqi().indexOf(" ")));
+            if(aqiValue <= 50) {
+                aqi.setBackgroundResource(R.drawable.rounded_rectangle_green);
+            } else {
+                aqi.setBackgroundResource(R.drawable.rounded_rectangle_orange);
+            }
             forecastLayout.addView(view);
             // 加载图片
             loadPic(forecast.getConditionImgUrl(), conditionImg);
         }
-
-        // 绑定GirdView中的数据
-        mLiveIndexList.clear();
-        List<LiveIndex> liveIndices = weather.getLiveIndexList();
-        for(LiveIndex liveIndex : liveIndices) {
-            mLiveIndexList.add(liveIndex);
-        }
-        adapter.notifyDataSetChanged();
     }
 
-    private void loadPic(final String imgUrl, final ImageView targetView) {
-        Glide.with(WeatherActivity.this).load(imgUrl).into(targetView);
-    }
+    private void loadForecastSeven() {
+        // 将forecastlayout中的数据改为七日预报
+        forecastLayout.removeAllViews();
+        for(ForecastSeven forecastSeven : weather.getForecastSevenList()) {
+            View view = LayoutInflater.from(this)
+                    .inflate(R.layout.forecast_seven_item, forecastLayout, false);
+            TextView dateText = view.findViewById(R.id.date_text);
+            TextView weekText = view.findViewById(R.id.week_text);
+            ImageView sfConditionImg = view.findViewById(R.id.sf_condition_img);
+            TextView sfConditionText = view.findViewById(R.id.sf_condition_text);
+            TextView minText = view.findViewById(R.id.min_text);
+            TextView maxText = view.findViewById(R.id.max_text);
 
+            dateText.setText(forecastSeven.getDate());
+            weekText.setText(forecastSeven.getWeek());
+            sfConditionText.setText(forecastSeven.getCondition());
+            minText.setText(forecastSeven.getMin());
+            maxText.setText(forecastSeven.getMax());
 
-    private class HandleWeatherResponseAsyncTask extends AsyncTask<String, Void, Weather> {
-        @Override
-        protected Weather doInBackground(String... strings) {
-            String weatherHtml = strings[0];
-            Weather weather;
-
-            try {
-                weather = HtmlParseUtil.handleWeatherResponse(weatherHtml);
-            } catch (IOException e) {
-                weather = null;
-            }
-            return weather;
-        }
-
-        @Override
-        protected void onPostExecute(Weather weather) {
-            if(weather != null) {
-                showWeatherInfo(weather);
-            } else {
-                Toast.makeText(WeatherActivity.this, "天气信息解析失败", Toast.LENGTH_SHORT).show();
-            }
+            forecastLayout.addView(view);
+            // 加载图片
+            loadPic(forecastSeven.getConditionImgUrl(), sfConditionImg);
         }
     }
-
 }

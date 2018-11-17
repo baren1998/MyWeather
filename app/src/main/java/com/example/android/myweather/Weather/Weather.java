@@ -16,14 +16,15 @@ public class Weather {
     private String pm25;
 
     // 天气预报列表
-    private List<Forecast> mForecastList;
+    private List<Forecast> mForecastList = new ArrayList<>();
 
     // 生活指数列表
-    private List<LiveIndex> mLiveIndexList;
+    private List<LiveIndex> mLiveIndexList = new ArrayList<>();
+
+    // 七日预报列表
+    private List<ForecastSeven> mForecastSevenList = new ArrayList<>();
 
     public Weather() {
-        mForecastList = new ArrayList<>();
-        mLiveIndexList = new ArrayList<>();
     }
 
     public String getCurrentAqi() {
@@ -115,5 +116,14 @@ public class Weather {
     public void setLiveIndexList(List<LiveIndex> liveIndexList) {
         mLiveIndexList.clear();
         mLiveIndexList.addAll(liveIndexList);
+    }
+
+    public List<ForecastSeven> getForecastSevenList() {
+        return mForecastSevenList;
+    }
+
+    public void setForecastSevenList(List<ForecastSeven> forecastSevenList) {
+        mForecastSevenList.clear();
+        mForecastSevenList.addAll(forecastSevenList);
     }
 }
