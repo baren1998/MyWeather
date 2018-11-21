@@ -15,8 +15,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.example.android.myweather.Util.HtmlParseUtil;
-import com.example.android.myweather.Util.HttpUtil;
+import com.example.android.myweather.Util.HtmlParseUtils;
+import com.example.android.myweather.Util.HttpUtils;
 import com.example.android.myweather.db.Province;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
@@ -154,7 +154,7 @@ public class ChooseProvinceFragment extends Fragment {
     /* 爬取并解析墨迹天气的省市数据并存入数据库 */
     private void parseProvinceFromWeb() {
 
-        HttpUtil.sendOKHttpRequest("https://tianqi.moji.com/weather/china", new Callback() {
+        HttpUtils.sendOKHttpRequest("https://tianqi.moji.com/weather/china", new Callback() {
             @Override
             public void onFailure(okhttp3.Call call, IOException e) {
 
@@ -163,7 +163,7 @@ public class ChooseProvinceFragment extends Fragment {
             @Override
             public void onResponse(okhttp3.Call call, Response response) throws IOException {
                 String htmlData = response.body().string();
-                HtmlParseUtil.ParseProvincesFromHtml(htmlData);
+                HtmlParseUtils.ParseProvincesFromHtml(htmlData);
 
                 setMapValue();
                 getActivity().runOnUiThread(new Runnable() {
@@ -180,7 +180,7 @@ public class ChooseProvinceFragment extends Fragment {
         StringBuilder builder = new StringBuilder("https://tianqi.moji.com/weather/china/");
         builder.append(provinceName);
         final String queryUrl = builder.toString();
-        HttpUtil.sendOKHttpRequest(queryUrl, new Callback() {
+        HttpUtils.sendOKHttpRequest(queryUrl, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 Toast.makeText(getActivity(), "获取省份失败，请检查网络设置", Toast.LENGTH_SHORT).show();
@@ -198,7 +198,7 @@ public class ChooseProvinceFragment extends Fragment {
                     });
                 }
                 else {
-                    final String name = HtmlParseUtil.extractNameFromHtml(htmlData);
+                    final String name = HtmlParseUtils.extractNameFromHtml(htmlData);
 
                     List<Province> p = LitePal.where("provinceName = ?", name).find(Province.class);
                     if(p.size() != 0) {

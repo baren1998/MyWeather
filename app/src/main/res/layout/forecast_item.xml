@@ -68,6 +68,7 @@
         android:textColor="@android:color/white" />
 
     <TextView
+        android:layout_marginLeft="8dp"
         android:id="@+id/aqi_text"
         android:layout_width="0dp"
         android:layout_height="30dp"

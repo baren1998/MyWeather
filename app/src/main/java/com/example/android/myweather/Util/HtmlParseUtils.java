@@ -22,7 +22,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class HtmlParseUtil {
+public class HtmlParseUtils {
 
     /* 爬取并解析墨迹天气的省市数据并存入数据库 */
     public static void ParseProvincesFromHtml(String htmlData) {
@@ -103,8 +103,8 @@ public class HtmlParseUtil {
         Element wea_infoElem = document.getElementsByClass("wrap clearfix wea_info").first();
         Element wea_alertElem = wea_infoElem.getElementsByClass("wea_alert clearfix").first();
         // 提取当前空气状况
-        String currntAqi = wea_alertElem.getElementsByTag("em").first().text();
-        weather.setCurrentAqi(currntAqi);
+        String currentAqi = wea_alertElem.getElementsByTag("em").first().text();
+        weather.setCurrentAqi(currentAqi);
         // 提取PM2.5的数值
         String pm25Url = wea_alertElem.getElementsByTag("a").first().attr("href");
         Request request = new Request.Builder().url(pm25Url).build();

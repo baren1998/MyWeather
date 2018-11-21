@@ -22,11 +22,12 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.android.myweather.Util.HtmlParseUtil;
-import com.example.android.myweather.Util.HttpUtil;
+import com.example.android.myweather.Util.HtmlParseUtils;
+import com.example.android.myweather.Util.HttpUtils;
 import com.example.android.myweather.db.City;
 import com.example.android.myweather.db.Province;
 
+import org.greenrobot.eventbus.EventBus;
 import org.litepal.LitePal;
 
 import java.io.IOException;
@@ -150,11 +151,11 @@ public class ChooseCityFragment extends Fragment {
                 @Override
                 public void onClick(View view) {
                     // 使用EventBus发送黏性事件，跳转到WeatherActivity并进行处理
-//                    EventBus.getDefault().postSticky(currentCity);
+                    EventBus.getDefault().postSticky(currentCity);
                     Intent intent = new Intent(getActivity(), WeatherActivity.class);
-                    String weatherQueryUrl = currentCity.getQueryWeatherUrl();
-                    intent.putExtra("city", cityName);
-                    intent.putExtra("weatherQuery", weatherQueryUrl);
+//                    String weatherQueryUrl = currentCity.getQueryWeatherUrl();
+//                    intent.putExtra("city", cityName);
+//                    intent.putExtra("weatherQuery", weatherQueryUrl);
                     startActivity(intent);
                 }
             });
@@ -233,7 +234,7 @@ public class ChooseCityFragment extends Fragment {
     }
 
     private void parseCityFromWeb(final Province currentProvince) {
-        HttpUtil.sendOKHttpRequest(currentProvince.getCityQueryUrl(), new Callback() {
+        HttpUtils.sendOKHttpRequest(currentProvince.getCityQueryUrl(), new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
 
@@ -242,7 +243,7 @@ public class ChooseCityFragment extends Fragment {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String html = response.body().string();
-                HtmlParseUtil.extractCitiesFromHtml(currentProvince.getProvinceName(), html);
+                HtmlParseUtils.extractCitiesFromHtml(currentProvince.getProvinceName(), html);
 
                 setListValue();
                 // 通知数据集更新

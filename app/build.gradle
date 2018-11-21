@@ -32,6 +32,7 @@ dependencies {
     implementation 'com.github.xujiaji:happy-bubble:1.1.6'
     implementation 'com.github.bumptech.glide:glide:4.8.0'
     implementation 'com.alibaba:fastjson:1.1.70.android'
+    implementation 'jp.wasabeef:blurry:3.0.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

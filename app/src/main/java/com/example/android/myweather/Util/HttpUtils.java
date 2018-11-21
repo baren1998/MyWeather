@@ -3,7 +3,7 @@ package com.example.android.myweather.Util;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 
-public class HttpUtil {
+public class HttpUtils {
 
     public static void sendOKHttpRequest(String address, okhttp3.Callback callback) {
         OkHttpClient client = new OkHttpClient();

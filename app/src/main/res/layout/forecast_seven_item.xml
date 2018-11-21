@@ -50,6 +50,7 @@
     </LinearLayout>
 
     <TextView
+        android:layout_marginLeft="8dp"
         android:textColor="@android:color/white"
         android:id="@+id/min_text"
         android:layout_width="0dp"
