@@ -103,26 +103,36 @@ public class ShareUtils {
     }
 
     public static String getRealPathFromURI(Context context, Uri contentURI) {
-        String result;
-        Cursor cursor = context.getContentResolver().query(contentURI,
-                new String[]{MediaStore.Images.ImageColumns.DATA},//
-                null, null, null);
-        if (cursor == null) result = contentURI.getPath();
-        else {
-            cursor.moveToFirst();
-            int index = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-            result = cursor.getString(index);
-            cursor.close();
+        String result = null;
+        // 如果为content类型，则根据uri查询图片路径
+        if(contentURI.getScheme().equalsIgnoreCase("content")) {
+            Cursor cursor = context.getContentResolver().query(contentURI,
+                    new String[]{MediaStore.Images.ImageColumns.DATA},//
+                    null, null, null);
+            if(cursor != null) {
+                if(cursor.moveToFirst()) {
+                    int index = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+                    result = cursor.getString(index);
+                }
+                cursor.close();
+            }
         }
+        // 如果为文件类型，则直接获取文件路径
+        else if(contentURI.getScheme().equalsIgnoreCase("file")) {
+            result = contentURI.getPath();
+        }
+
         return result;
     }
 
     public static void deleteImage(Context context, String filePath) {
-        Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        ContentResolver mContentResolver = context.getContentResolver();
-        String where = MediaStore.Images.Media.DATA + "='" + filePath + "'";
-        //删除图片
-        mContentResolver.delete(uri, where, null);
+        if(filePath != null) {
+            Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            ContentResolver mContentResolver = context.getContentResolver();
+            String where = MediaStore.Images.Media.DATA + "='" + filePath + "'";
+            //删除图片
+            mContentResolver.delete(uri, where, null);
+        }
     }
 
     public static void updateMediaStore(final  Context context, final String path) {

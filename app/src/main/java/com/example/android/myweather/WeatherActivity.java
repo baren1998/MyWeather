@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -28,6 +29,7 @@ import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
 import com.bumptech.glide.Glide;
+import com.example.android.myweather.Service.AutoUpdateAndPushService;
 import com.example.android.myweather.Util.HtmlParseUtils;
 import com.example.android.myweather.Util.HttpUtils;
 import com.example.android.myweather.Util.ImageDecodeUtils;
@@ -264,6 +266,10 @@ public class WeatherActivity extends AppCompatActivity {
             showWeatherInfo();
         }
 
+        // 开启更新与推送服务
+        Intent intent = new Intent(this, AutoUpdateAndPushService.class);
+        startService(intent);
+
         // 注册EventBus
         EventBus.getDefault().register(this);
     }
@@ -296,6 +302,21 @@ public class WeatherActivity extends AppCompatActivity {
         requestWeather(weatherQueryUrl);
         // 移除该黏性事件，防止重复接收
         EventBus.getDefault().removeStickyEvent(event);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case 1:
+                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    ShareUtils.shareToOtherApp(WeatherActivity.this, weatherFrameLayout);
+                } else {
+                    Toast.makeText(this, "你拒绝了权限", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     /* 从网站上获取需要的天气信息 */
@@ -370,7 +391,7 @@ public class WeatherActivity extends AppCompatActivity {
 
         // 根据当前天气状况设置天气背景（实现简易版的app主题变换)
         Bitmap weatherBgBmp = null;
-        if(currentCondition.contains("晴")) {
+        if(currentCondition.equals("晴")) {
             weatherBgBmp = ImageDecodeUtils.readBitMap(WeatherActivity.this, R.drawable.weather_sunny);
         }
         else if(currentCondition.contains("阴") || currentCondition.contains("多云")) {
