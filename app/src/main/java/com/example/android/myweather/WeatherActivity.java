@@ -280,9 +280,11 @@ public class WeatherActivity extends AppCompatActivity {
         // 接触EventBus注册
         EventBus.getDefault().unregister(this);
         // 删除截图列表中的最后一张图片
-        String lastImgPath = screenShotPaths.remove(0);
-        ShareUtils.deleteImage(WeatherActivity.this, lastImgPath);
-        ShareUtils.updateMediaStore(WeatherActivity.this, lastImgPath);
+        if(screenShotPaths.size() > 0) {
+            String lastImgPath = screenShotPaths.remove(0);
+            ShareUtils.deleteImage(WeatherActivity.this, lastImgPath);
+            ShareUtils.updateMediaStore(WeatherActivity.this, lastImgPath);
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
@@ -392,16 +394,16 @@ public class WeatherActivity extends AppCompatActivity {
         // 根据当前天气状况设置天气背景（实现简易版的app主题变换)
         Bitmap weatherBgBmp = null;
         if(currentCondition.equals("晴")) {
-            weatherBgBmp = ImageDecodeUtils.readBitMap(WeatherActivity.this, R.drawable.weather_sunny);
+            weatherBgBmp = ImageDecodeUtils.readBitMap(WeatherActivity.this, R.drawable.sunny);
         }
         else if(currentCondition.contains("阴") || currentCondition.contains("多云")) {
-            weatherBgBmp = ImageDecodeUtils.readBitMap(WeatherActivity.this, R.drawable.weather_cloudy);
+            weatherBgBmp = ImageDecodeUtils.readBitMap(WeatherActivity.this, R.drawable.cloudy);
         }
         else if(currentCondition.contains("雨")) {
-            weatherBgBmp = ImageDecodeUtils.readBitMap(WeatherActivity.this, R.drawable.weather_rain);
+            weatherBgBmp = ImageDecodeUtils.readBitMap(WeatherActivity.this, R.drawable.rainy);
         }
         else if(currentCondition.contains("雪")) {
-            weatherBgBmp = ImageDecodeUtils.readBitMap(WeatherActivity.this, R.drawable.weather_snowy);
+            weatherBgBmp = ImageDecodeUtils.readBitMap(WeatherActivity.this, R.drawable.snowy);
         }
         // 设置背景图片，实现简易的主题改变
         weatherBgImg.setImageBitmap(weatherBgBmp);
@@ -452,11 +454,15 @@ public class WeatherActivity extends AppCompatActivity {
             wind.setText(forecast.getWind());
             aqi.setText(forecast.getAqi());
             // 判断aqi处的背景颜色
-            int aqiValue = Integer.parseInt(forecast.getAqi().substring(0, forecast.getAqi().indexOf(" ")));
+            int aqiValue = Integer.parseInt(forecast.getAqi());
             if(aqiValue <= 50) {
                 aqi.setBackgroundResource(R.drawable.rounded_rectangle_green);
-            } else {
+            }
+            else if(aqiValue <= 100) {
                 aqi.setBackgroundResource(R.drawable.rounded_rectangle_orange);
+            }
+            else {
+                aqi.setBackgroundResource(R.drawable.rounded_rectangle_red);
             }
             forecastLayout.addView(view);
             // 加载图片

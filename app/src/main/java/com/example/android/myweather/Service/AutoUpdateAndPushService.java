@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.BitmapFactory;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
@@ -43,6 +44,7 @@ public class AutoUpdateAndPushService extends Service {
         // 更新天气缓存
         updateWeatherPreferences();
 
+
         // 获取当前天气对象
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherJSON = preferences.getString("weather", null);
@@ -74,9 +76,10 @@ public class AutoUpdateAndPushService extends Service {
             //定义通知,都可适配
             NotificationCompat.Builder notification=new NotificationCompat.Builder(this,id);
             notification.setContentTitle("明日天气：")
-                    .setStyle(new NotificationCompat.BigTextStyle().bigText(builder.toString()))
+                    .setContentText(builder.toString())
                     .setWhen(System.currentTimeMillis())
-                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                    .setSmallIcon(R.mipmap.logo)
+                    .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.logo))
                     .setPriority(NotificationCompat.PRIORITY_MAX)//悬浮通知
                     .setContentIntent(pi)
                     .setAutoCancel(true);

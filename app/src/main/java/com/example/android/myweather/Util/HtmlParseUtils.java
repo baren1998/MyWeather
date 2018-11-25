@@ -103,7 +103,8 @@ public class HtmlParseUtils {
         Element wea_infoElem = document.getElementsByClass("wrap clearfix wea_info").first();
         Element wea_alertElem = wea_infoElem.getElementsByClass("wea_alert clearfix").first();
         // 提取当前空气状况
-        String currentAqi = wea_alertElem.getElementsByTag("em").first().text();
+        String currentAqiText = wea_alertElem.getElementsByTag("em").first().text();
+        String currentAqi = currentAqiText.substring(0, currentAqiText.indexOf(" "));
         weather.setCurrentAqi(currentAqi);
         // 提取PM2.5的数值
         String pm25Url = wea_alertElem.getElementsByTag("a").first().attr("href");
@@ -162,7 +163,8 @@ public class HtmlParseUtils {
             String windDeriction = windElem.child(0).text();
             String wind = windElem.child(1).text();
             // 提取空气质量
-            String aqi = liElems.get(4).getElementsByTag("strong").first().text();
+            String aqiText = liElems.get(4).getElementsByTag("strong").first().text();
+            String aqi = aqiText.substring(0, aqiText.indexOf(" "));
             // 提取天气状况图片URL
             String conditionImgUrl = e.getElementsByTag("img").first().attr("src");
 

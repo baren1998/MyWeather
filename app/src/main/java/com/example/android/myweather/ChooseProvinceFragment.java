@@ -99,7 +99,7 @@ public class ChooseProvinceFragment extends Fragment {
         fabAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dialog.show();
+//                dialog.show();
                 fabMenu.close(true);
             }
         });

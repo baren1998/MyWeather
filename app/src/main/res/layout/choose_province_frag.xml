@@ -6,6 +6,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <ImageView
+        android:src="@drawable/bg_provice"
+        android:scaleType="centerCrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/choose_area_view"
         android:layout_width="match_parent"
